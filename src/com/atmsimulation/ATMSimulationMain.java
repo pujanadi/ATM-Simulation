@@ -6,7 +6,7 @@ import java.util.*;
 
 
 public class ATMSimulationMain {
-    enum Screen {
+    public enum Screen {
         WELCOME_SCREEN, TRANSACTION_SCREEN, WITHDRAW_SCREEN, OTHER_WITHDRAW_SCREEN, SUMMARY_SCREEN, EXIT_SCREEN,
         FUND_TRANSFER_STEP1_SCREEN, FUND_TRANSFER_STEP2_SCREEN, FUND_TRANSFER_STEP3_SCREEN, FUND_TRANSFER_STEP4_SCREEN,
         FUND_TRANSFER_SUMMARY_SCREEN
@@ -158,8 +158,6 @@ public class ATMSimulationMain {
     }
 
     static Screen summaryScreen() {
-//        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm aa");
-//        String dateDisplay = df.format(new Date());
         String dateDisplay = LocalDate.now() + " " + LocalTime.now();
 
         System.out.println("Summary");
@@ -222,29 +220,42 @@ public class ATMSimulationMain {
 
         if(option == 1) {
             // validate bene acc
-            if(!fundTransfer.getBeneficiaryAccount().matches("[0-9]+")) System.out.println("Invalid account");
-            else if(!validateAccountNumber(fundTransfer.getBeneficiaryAccount())) System.out.println("Invalid account");
-            else if(Integer.parseInt(fundTransfer.getAmount()) > 1000)  System.out.println("Maximum amount to transfer is $1000");
-            else if(Integer.parseInt(fundTransfer.getAmount()) < 1) System.out.println("Minimum amount to transfer is $1");
-            else if(!fundTransfer.getAmount().matches("[0-9]+")) System.out.println("Invalid amount");
-            else if((account.getBalance() < Integer.parseInt(fundTransfer.getAmount()))) System.out.println("Insufficient balance");
-            else {
-                Account destAccount = findAccountByAccountNumber(fundTransfer.getBeneficiaryAccount());
-                if(destAccount != null) {
-                    // Deducted source account balance
-                    account.setBalance(account.getBalance() - Integer.parseInt(fundTransfer.getAmount()));
-
-                    // Credit to destination account
-                    destAccount.setBalance(destAccount.getBalance() + Integer.parseInt(fundTransfer.getAmount()));
-                    updateAccount(destAccount);
-                }
-
-                isValidTransaction = true;
-            }
-
+            validateFundTransferAmount();
         }
 
         return isValidTransaction ? Screen.FUND_TRANSFER_SUMMARY_SCREEN : Screen.TRANSACTION_SCREEN;
+    }
+
+    static boolean validateFundTransferAmount() {
+        boolean isValidTransaction = false;
+
+        if(!fundTransfer.getBeneficiaryAccount().matches("[0-9]+")) System.out.println("Invalid account");
+        else if(!Account.validateAccountNumber(fundTransfer.getBeneficiaryAccount())) System.out.println("Invalid account");
+        else if(Integer.parseInt(fundTransfer.getAmount()) > 1000)  System.out.println("Maximum amount to transfer is $1000");
+        else if(Integer.parseInt(fundTransfer.getAmount()) < 1) System.out.println("Minimum amount to transfer is $1");
+        else if(!fundTransfer.getAmount().matches("[0-9]+")) System.out.println("Invalid amount");
+        else if((account.getBalance() < Integer.parseInt(fundTransfer.getAmount()))) System.out.println("Insufficient balance");
+        else {
+            Account destAccount = findAccountByAccountNumber(fundTransfer.getBeneficiaryAccount());
+            if(destAccount != null) {
+                doTransaction(destAccount);
+            }
+
+            isValidTransaction = true;
+        }
+
+        return isValidTransaction;
+    }
+
+    static void doTransaction(Account destAccount) {
+        // Deducted source account balance
+        account.setBalance(account.getBalance() - Integer.parseInt(fundTransfer.getAmount()));
+
+        // Credit to destination account
+        destAccount.setBalance(destAccount.getBalance() + Integer.parseInt(fundTransfer.getAmount()));
+
+        // Update account
+        updateAccount(destAccount);
     }
 
     static Screen fundTransferSummaryScreen() {
@@ -270,28 +281,21 @@ public class ATMSimulationMain {
 
     public static boolean authentication(String accountNumber, String pin) {
 
-        boolean isValidAccountNumber = validateAccountNumber(accountNumber);
-        boolean isValidPin = validatePin(pin);
+        boolean isValidAccountNumber = Account.validateAccountNumber(accountNumber);
+        boolean isValidPin = Account.validatePin(pin);
         boolean isValidAccNumAndPin = false;
         for(Account acc : accountList) {
             if(acc.getAccountNumber().equals(accountNumber) && acc.getPin().equals(pin)) {
                 isValidAccNumAndPin = true;
                 account = acc;
-//                System.out.println("account number:" + account.getAccountNumber());
-//                System.out.println("account name:" + account.getName());
-//                System.out.println("balance:" + account.getBalance());
+                System.out.println("LOG");
+                System.out.println("account number:" + account.getAccountNumber());
+                System.out.println("account name:" + account.getName());
+                System.out.println("balance:" + account.getBalance());
             }
         }
 
         return isValidAccountNumber && isValidPin && isValidAccNumAndPin;
-    }
-
-    public static boolean validateAccountNumber(String accountNumber) {
-        return (accountNumber != null) && (accountNumber.length() == 6) && (accountNumber.matches("[0-9]+"));
-    }
-
-    public static boolean validatePin(String pin) {
-        return (pin != null) && (pin.length() == 6) && (pin.matches("[0-9]+"));
     }
 
     public static Account findAccountByAccountNumber(String accountNumber) {

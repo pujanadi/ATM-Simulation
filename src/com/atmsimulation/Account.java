@@ -6,12 +6,7 @@ public class Account {
     private int balance;
     private String accountNumber;
 
-    public Account() {
-        this.name = name;
-        this.pin = pin;
-        this.balance = balance;
-        this.accountNumber = accountNumber;
-    }
+    public Account() { }
 
     public Account(String name, String pin, int balance, String accountNumber) {
         this.name = name;
@@ -50,5 +45,13 @@ public class Account {
 
     public void setAccountNumber(String accountNumber) {
         this.accountNumber = accountNumber;
+    }
+
+    public static boolean validateAccountNumber(String accountNumber) {
+        return (accountNumber != null) && (accountNumber.length() == 6) && (accountNumber.matches("[0-9]+"));
+    }
+
+    public static boolean validatePin(String pin) {
+        return (pin != null) && (pin.length() == 6) && (pin.matches("[0-9]+"));
     }
 }

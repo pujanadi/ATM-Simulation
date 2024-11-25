@@ -4,7 +4,6 @@ import java.util.Date;
 
 public class FundTransfer {
     private Account sourceAccount;
-//    private Account beneficiaryAccount;
     private String beneficiaryAccount;
     private String referenceNumber;
     private String amount;
